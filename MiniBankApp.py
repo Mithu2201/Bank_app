@@ -1,14 +1,38 @@
 
 import datetime
-def Create_user(nic_no,name,ph_no,address,date):
+from tabulate import tabulate
+
+def Create_user():
+
+    print("============User details============")
+    nic_no=int(input("Enter NIC no:"))
+    name=input("Enter user name:")
+    ph_no=int(input("Enter user contact no:"))
+    Address=input("Enter user resident area:")
+    date=datetime.datetime.now()
     
     User1[nic_no]={
 
         'name' : name,
         'phone_num' : ph_no,
-        'place'    : address,
+        'place'    : Address,
         'Date': date.strftime("%Y-%m-%d- %H:%M:%S")
     }
+
+    print("Your Profile has been Created")
+    
+    print("User_Id         : Customer_name : Pho_number    : Address       : Date                     :")
+    for user_id,details in User1.items():
+                
+        print(":",user_id," " *(12-len(str(user_id))),
+        ":",details['name']," " *(12-len(details['name'])),
+        ":",details['phone_num']," " *(12-len(str(details['phone_num']))),
+        ":",details['place']," " *(12-len(details['place'])),
+        ":",details['Date']," " *(18-len(str(details['Date']))),)
+
+    with open("customers.txt", "a") as file:
+        file.write(f"{user_id}\t{details['name']}\t{details['phone_num']}\t{details['place']}\t{details['Date']}\t\n")
+    
     return User1
 
 def find_user(Customer):
@@ -23,7 +47,15 @@ def find_user(Customer):
     else:
         print("User not found.")
 
-def create_Account(nic_no,Acc_no,Acc_type,Intial_bal,date):
+def create_Account():
+
+    print("===========Account details===========")
+    nic_no=int(input("Enter NIC no: "))
+    Acc_no=int(input("Enter Account no: "))
+    Acc_type=input("Enter Account Type:")
+    Intial_bal=float(input("Enter Intial Balance:"))
+    date=datetime.datetime.now()
+    print("Your Account has been Created with",Intial_bal)
 
     User2[nic_no]={
         'Account_num' : Acc_no,
@@ -70,18 +102,38 @@ def withdraw(balance):
     except ValueError:
         print("Enter Digital value") 
 
-def get_Bal(new2):
-    return new2
-
-def history(Int_bal,deposit,withdraw,final):
+def get_Bal(User_Acc):
     
-    x=In_bal
-    y=deposit
-    z=withdraw
-    p=final
+    seek_id=int(input("Enter user ID : "))
+    if seek_id in User_Acc:
+        print("User Found:")
+        dict_val=User_Acc[seek_id]
+        print("Customer_name  : Pho_number    : Address        : Date           :")
+        print('         '.join(str(value)for value in dict_val.values())) 
+        return dict_val
+    else:
+        print("User not found.")
 
-    print(f"Your Intial balance is :",x,"Deposited money :" ,y,"Withdraw Money :",z
-    ,"Closing balance :",p)
+def history():
+    print("Transaction History:\n")
+
+    transactions = []
+
+    with open("transactions.txt", "r") as file:
+        for line in file:
+            line = line.strip()
+            if not line:
+                continue  # skip empty lines
+            parts = [item.strip() for item in line.split('\t')]
+            if len(parts) == 5:
+                transactions.append(parts)
+            else:
+                print(f"Skipping malformed line: {line}")
+
+    # Print the table
+    headers = ["Account_Type", "Account No", "Deposit Amount", "Opening Balance", "Date"]
+    print(tabulate(transactions, headers=headers, tablefmt="grid"))
+
  
 def exit():
     
@@ -115,43 +167,15 @@ if user==U_name and pass_w==P_word:
         
         if select==1:
             
-            print("============User details============")
-            nic_no=int(input("Enter NIC no:"))
-            name=input("Enter user name:")
-            ph_no=int(input("Enter user contact no:"))
-            Address=input("Enter user resident area:")
-            date=datetime.datetime.now()
-            Customer=Create_user(nic_no,name,ph_no,Address,date)
-            print("Your Profile has been Created")
+            User1=Create_user()
             
-            print("User_Id         : Customer_name : Pho_number    : Address       : Date                     :")
-            for user_id,details in Customer.items():
-                
-                print(":",user_id," " *(12-len(str(user_id))),
-                ":",details['name']," " *(12-len(details['name'])),
-                ":",details['phone_num']," " *(12-len(str(details['phone_num']))),
-                ":",details['place']," " *(12-len(details['place'])),
-                ":",details['Date']," " *(18-len(str(details['Date']))),)
-
-                file = open("customers.txt",'a')
-                file.write(f"{user_id}\t{details['name']}\t{details['phone_num']}\t{details['place']}\t{details['Date']}\t")
-                file.close
-
         elif select==2:
         
-
-            find_user(Customer)
+            find_user(User1)
         
         elif select==3:
 
-            print("===========Account details===========")
-            nic_no=int(input("Enter NIC no: "))
-            Acc_no=int(input("Enter Account no: "))
-            Acc_type=input("Enter Account Type:")
-            Intial_bal=float(input("Enter Intial Balance:"))
-            date=datetime.datetime.now()
-            User_Acc=create_Account(nic_no,Acc_no,Acc_type,Intial_bal,date)
-            print("Your Account has been Created with",Intial_bal)
+            User_Acc=create_Account()
             
             print("User_Id         : Customer_name : Pho_number    : Address       : Date                     :")
             for user_id,details in User_Acc.items():
@@ -162,112 +186,122 @@ if user==U_name and pass_w==P_word:
                 ":",details['Opening_bal']," " *(12-len(str(details['Opening_bal']))),
                 ":",details['Date']," " *(18-len(str(details['Date']))),)
 
-                file = open("accounts.txt",'a')
-                file.write(f"{user_id}\t{details['Account_num']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\t")
-                file.close
+            with open("accounts.txt", "a") as file:
+                    file.write(f"{user_id}\t{details['Account_num']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
 
         elif select==4:
             find_acc(User_Acc)
 
         elif select==5:
             rece=find_acc(User_Acc)
+            a_type=rece['Account_type']
+            a_num=rece['Account_num']
             open_bal=rece['Opening_bal']
-            open_bal+=deposit()
+            dip_amount=deposit()
+            open_bal+=dip_amount
             print("Balance updated with",open_bal)
             rece['Opening_bal']=open_bal
             print(User_Acc)
             date=datetime.datetime.now()
             
-            file = open("transaction.txt",'a')
-            file.write(f"{user_id}\t{details['Account_num']}\t{rece}\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t")
-            file.close
+            with open("transactions.txt", "a") as file:
+                file.write(f"{a_type}\t{a_num}\t{dip_amount}\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t\n")
             
         elif select==6:
-            rece1=find_acc(User_Acc)
-            open_bal=rece1['Opening_bal']
-            open_bal-=withdraw(open_bal)
+            rece=find_acc(User_Acc)
+            a_type=rece['Account_type']
+            a_num=rece['Account_num']
+            open_bal=rece['Opening_bal']
+            dip_amount=deposit()
+            open_bal-=dip_amount
             print("Balance updated with",open_bal)
-            rece1['Opening_bal']=open_bal
+            rece['Opening_bal']=open_bal
             print(User_Acc)
 
-            file = open("transaction.txt",'a')
-            file.write(f"{user_id}\t{details['Account_num']}\t{rece1}\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t")
-            file.close
+            with open("transactions.txt", "a") as file:
+                file.write(f"{a_type}\t{a_num}\t{dip_amount}\t{open_bal}\t{date.strftime("%Y-%m-%d-%H:%M:%S")}\t\n")
             
         elif select==7:
-            final=get_Bal(open_bal)
-            print("This is your balance",final)
+            
+            final=get_Bal(User_Acc)
 
         elif select==8:
-            #history(name,Address,status,Acc_no,Acc_type,Balance)
-            file = open("customers.txt",'r')
-            file = open("accounts.txt",'r')
-            file = open("transaction.txt",'r')
-            file.write(f"{user_id}\t{details['Account_num']}\t{rece1}\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t")
-            file.close
-            print("Your available balance is updated ")
+
+            history()
 
         elif select==9:
-            d=exit()
+            exit()
             break
 
-# elif user==Us_name and pass_w==Pa_word:
+elif user==Us_name and pass_w==Pa_word:
 
-#     while True:
-#         print("============Menu===========")    
-#         print("1.Create User")
-#         print("2.Personal Details")
-#         print("3.Search my Account")
-#         print("4.Deposit Money")
-#         print("5.Withdrw Money")
-#         print("6.Check balance")
-#         print("7.Transaction Histry")
-#         print("8.Exit")
+    while True:
+        print("============Menu===========")    
+        print("1.Create User")
+        print("2.Deposit Money")
+        print("3.Withdrw Money")
+        print("4.Check balance")
+        print("5.Transaction Histry")
+        print("6.Exit")
         
-#         select=int(input("Choose an Option :"))
+        select=int(input("Choose an Option :"))
         
-#         if select==1:
+        if select==1:
             
-#             print("============User details============")
-#             nic_no=int(input("Enter NIC no:"))
-#             name=input("Enter user name:")
-#             ph_no=int(input("Enter user contact no:"))
-#             Address=input("Enter user resident area:")
-
-#             Customer=Create_user(nic_no,name,ph_no,Address)
-#             print(Customer)
-#             print("Your Profile has been Created")
+            User1=Create_user()
         
-#         elif select==2:
+        elif select==7:
 
-#             find_user(Customer)
+            User_Acc=create_Account()
 
-#         elif select==3:
-#             find_acc(User_Acc)
+        elif select==8:
+            find_acc(User_Acc)
 
-#         elif select==4:
-#             Cus_acc=int(input("Enter your Account No:"))
+        elif select==2:
             
-#             Intial_bal+=deposit()
-#             print("Balance updated with",Intial_bal)
+            rece=find_acc(User_Acc)
+            a_type=rece['Account_type']
+            a_num=rece['Account_num']
+            open_bal=rece['Opening_bal']
+            dip_amount=deposit()
+            open_bal+=dip_amount
+            print("Balance updated with",open_bal)
+            rece['Opening_bal']=open_bal
+            print(User_Acc)
+            date=datetime.datetime.now()
             
-#         elif select==5:
-#             Intial_bal-=withdraw(Intial_bal)
-#             print("Balance updated with",Intial_bal)
+            with open("transactions.txt", "a") as file:
+                file.write(f"{a_type}\t{a_num}\t{dip_amount}\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t\n")
+            
+            
+        elif select==3:
+            
+            rece=find_acc(User_Acc)
+            a_type=rece['Account_type']
+            a_num=rece['Account_num']
+            open_bal=rece['Opening_bal']
+            dip_amount=deposit()
+            open_bal-=dip_amount
+            print("Balance updated with",open_bal)
+            rece['Opening_bal']=open_bal
+            print(User_Acc)
 
-#         elif select==6:
-#             final=get_Bal(Intial_bal)
-#             print("This is your balance",final)
+            with open("transactions.txt", "a") as file:
+                file.write(f"{a_type}\t{a_num}\t{dip_amount}\t{open_bal}\t{date.strftime("%Y-%m-%d-%H:%M:%S")}\t\n")
 
-#         elif select==7:
-#             history(Intial_bal,Intial_bal,Intial_bal,final)
-#             print("Your available balance is updated ")
- 
-#         elif select==8:
-#             d=exit()
-#             break
+            
+        elif select==4:
+            
+            final=get_Bal(User_Acc)
 
-# else:    
-#     print("Enter Correct User Name and password")
+        elif select==5:
+            
+            history()
+
+        elif select==6:
+            exit()
+            break
+else:    
+    print("Enter Correct User Name and password")
         
-print("hellow")
+

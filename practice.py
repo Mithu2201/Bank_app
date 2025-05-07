@@ -102,21 +102,26 @@ nested_list = {
     1003 :{'name' :"Nicole", 'phone_no' :772653986,'Address' :"sangupi"},
     1004 :{'name' :"Joey", 'phone_no' :778952562,'Address' :"mannar"},
     1005 :{'name' :"Sam", 'phone_no' :772541212,'Address' :"kilinoch"}
-}
+} 
 # print("Full_name       Pho_number      Address")
 # for user in nested_list.values():
 #     print(f"{user['name']}\t\t{user['phone_no']}\t{user['Address']}")
 
 
-    user,details=nested_list.items():
-    print(f"{details['name']}\t\t{details['phone_no']}\t{details['Address']}")
+"""     user,details=nested_list.items():
+    print(f"{details['name']}\t\t{details['phone_no']}\t{details['Address']}") """
 
 
-""" print("Cutomer_ID  : Full_name   :    Phone_num  :      Address   :")
+#print("Cutomer_ID  : Full_name   :    Phone_num  :      Address   :")
 
 i=0
 for i in nested_list:
-    for j in nested_list[i]:
-        print(i,nested_list[i][j],end="      ")
-    print("\n")
- """
+    print(i)
+    print(nested_list.keys())
+    # for j in nested_list[i]:
+    #     print(i,nested_list[i][j],end="      ")
+    # print("\n")
+
+
+
+
