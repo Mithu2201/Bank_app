@@ -1,3 +1,0 @@
-kumar	current	600	Deposit	6600.0	2025-05-08- 21:34:53	
-mithu	saving	450	Deposit	5450.0	2025-05-08- 21:35:02	
-mithu	saving	330	Withdraw	5120.0	2025-05-08-21:35:10	
