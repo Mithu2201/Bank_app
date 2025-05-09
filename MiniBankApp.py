@@ -9,26 +9,28 @@ def Create_user():
     ph_no=int(input("Enter Contact number-(Ex-07X-1234567) :"))
     Address=input("Enter Customer Address-(Ex-Jaffna) :")
     user=input("Enter User Name -(Ex-Marco123@) :")
-    Pass_w=input("Enter Password-(Ex-User@123) :")
+    Pass=input("Enter Password-(Ex-User@123) :")
     date=datetime.datetime.now()
     
     User1[name]={
         'phone_no' : ph_no,
         'place'    : Address,
         'user_id' : user,
-        'password' : pass_w,
+        'password' : Pass,
         'Date': date.strftime("%Y-%m-%d- %H:%M:%S")
     }
 
     print("Your Profile has been Created")
     
-    print(": Name          : Phone_NUmber  : Address       : User_ID       : Password      : Date                     :")
+    print(": Name          : Phone_NUmber  : Address       : Date                     :")
     for user_id,details in User1.items():
-                
-        print(":",user_id," " *(12-len(user_id)),":",details['phone_no']," " *(12-len(str(details['phone_no']))),":",details['place']," " *(12-len(details['place'])),":",details['user_id']," " *(12-len(str(details['user_id']))),":",details['password']," " *(12-len(str(details['password']))),":",details['Date']," " *(18-len(str(details['Date']))),)
+        print(":",user_id," " *(12-len(user_id)),":",details['phone_no']," " *(12-len(str(details['phone_no']))),":",details['place']," " *(12-len(details['place'])),":",details['Date']," " *(18-len(str(details['Date']))),)
 
     with open("customers.txt", "a") as file:
-        file.write(f"{user_id}\t{details['phone_no']}\t{details['place']}\t{details['user_id']}\t{details['password']}\t{details['Date']}\t\n")
+        file.write(f"{user_id}\t{details['phone_no']}\t{details['place']}\t{details['Date']}\t\n")
+
+    with open("users.txt", "a") as file:
+        file.write(f"{details['user_id']}\t{details['password']}\t\n")
     
     return User1
 
@@ -39,18 +41,14 @@ def load_users(filename="customers.txt"):
         with open(filename, "r") as file:
             for line in file:
                 parts = line.strip().split('\t')
-                if len(parts) == 6:
+                if len(parts) == 4:
                     name = parts[0]
                     ph_no = int(parts[1])
                     address = parts[2]
-                    user = parts[3]
-                    pass_w = parts[4]
-                    date = parts[5]
+                    date = parts[3]
                     loaded_data[name] = {
                         'phone_no': ph_no,
                         'address': address,
-                        'user_id': user,
-                        'password': pass_w,
                         'Date': date
                     }
     except FileNotFoundError:
@@ -58,13 +56,31 @@ def load_users(filename="customers.txt"):
     
     return loaded_data
 
+def load_admins(filename="users.txt"):
+    loaded_user = {}
+    try:
+        with open(filename, "r") as file:
+            for line in file:
+                parts = line.strip().split('\t')
+                if len(parts) == 3:
+                    user_name = parts[0]
+                    pass_word = parts[1]
+                    loaded_data[name] = {
+                        'User_name': user,
+                        'pasword': password,
+                    }
+    except FileNotFoundError:
+        print(f"{filename} not found.")
+    
+    return loaded_user
+
 def find_user(Customer):
     
-    seek_id=input("Enter user ID : ")
+    seek_id=input("Enter user name : ")
     if seek_id in Customer:
         print("User Found:")
         x=Customer[seek_id]
-        print("Password  : Address    : phone_num        : Date           :")
+        print("phone_num  : Address    : Date           :")
         print('         '.join(str(value)for value in x.values())) 
         
     else:
@@ -258,7 +274,7 @@ while True:
                 users = load_users()
                 print(users)
                 find_user(users)
-            
+
             elif select==3:
 
                 User_Acc=create_Account()
