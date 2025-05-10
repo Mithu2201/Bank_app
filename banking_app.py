@@ -1,6 +1,7 @@
 
 import datetime
 from tabulate import tabulate
+import os
 
 def Create_user(): #create new customer 
 
@@ -84,7 +85,7 @@ def find_user(Customer):
     if seek_id in Customer:
         print("User Found:")
         x=Customer[seek_id]
-        print("phone_num  : Address    : Date           :")
+        print("phone_num        : Address    : Date           :")
         print('         '.join(str(value)for value in x.values())) 
         
     else:
@@ -173,7 +174,7 @@ def find_acc(User_Acc):
     if seek_id in User_Acc:
         print("User Found:")
         dict_val=User_Acc[seek_id]
-        print("Customer_name  : Pho_number    : Address        : Date           :")
+        print("Customer_name  : Account_Type    : Balance        : Date           :")
         print('         '.join(str(value)for value in dict_val.values())) 
         return dict_val
     else:
@@ -304,9 +305,6 @@ def transfer_money(accounts):
     sender = accounts[sender_id]
     receiver = accounts[receiver_id]
 
-    print(f"Sender: {sender['Name']}, Balance: {sender['Opening_bal']}")
-    print(f"Receiver: {receiver['Name']}, Balance: {receiver['Opening_bal']}")
-
     try:
         amount = float(input("Enter amount to transfer: "))
         if amount <= 0:
@@ -363,9 +361,11 @@ def exit(): # Exit message
 
 while True:
 
-    U_name="Admin"
-    P_word="123"
+    if not os.path.exists("users.txt"):
+        with open("users.txt", "a") as file:
+            file.write("Admin\t123\n") 
     admins=load_admins()
+
     User1={}
     User2={}
 
@@ -389,7 +389,7 @@ while True:
     password = input("Enter Your Password : ")
 
     if pick==1: 
-        if username == U_name and password == P_word:
+        if username in admins and admins[username] == password:
 
             while True:
                 print("============Menu===========")    
@@ -484,8 +484,6 @@ while True:
                     
                 elif select==4:
                     accounts = load_accounts()
-                    print(accounts)
-                    
                     final=get_Bal(accounts)
 
                 elif select==5:
