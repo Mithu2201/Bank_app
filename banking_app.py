@@ -4,9 +4,15 @@ from tabulate import tabulate
 import os
 
 def Create_user(): #create new customer 
-
+    User1={}
     print("============User details============")
     name=input("Enter Customer Name-(Ex-John) :")
+    while True:
+        nic = input("Enter NIC Number (Ex-200012345678): ").strip()
+        if len(nic) >= 10:
+            break
+        else:
+            print("Invalid NIC. Must be at least 10 characters.")
     while True: #validate phone number input
         try:
             ph_no = int(input("Enter Contact Number (Ex-0712345678): "))
@@ -18,7 +24,8 @@ def Create_user(): #create new customer
     Pass=input("Enter Password-(Ex-User@123) :")
     date=datetime.datetime.now()
     #save user detail to dictionary   
-    User1[name]={
+    User1[nic]={
+        'name': name,
         'phone_no' : ph_no,
         'place'    : Address,
         'user_id' : user,
@@ -28,15 +35,18 @@ def Create_user(): #create new customer
 
     print("Your Profile has been Created")
     #print created customer
-    print(": Name          : Phone_NUmber  : Address       : Date                     :")
-    for user_id,details in User1.items():
-        print(":",user_id," " *(12-len(user_id)),":",details['phone_no']," " *(12-len(str(details['phone_no']))),":",details['place']," " *(12-len(details['place'])),":",details['Date']," " *(18-len(str(details['Date']))),)
+    print(": NIC NUMBER   : Name        : Phone_NUmber  : Address       : Date                     ")
+    for nic_id, details in User1.items():
+        print(f": {nic_id:13}: {details['name']:12}: {details['phone_no']:14}: {details['place']:14}: {details['Date']}")
     #save txt files
     with open("customers.txt", "a") as file:
-        file.write(f"{user_id}\t{details['phone_no']}\t{details['place']}\t{details['Date']}\t\n")
+        file.write(f"{nic_id}\t{details['name']}\t{details['phone_no']}\t{details['place']}\t{details['Date']}\t\n")
 
     with open("users.txt", "a") as file:
         file.write(f"{details['user_id']}\t{details['password']}\t\n")
+
+    with open("user_nic_map.txt", "a") as file:
+        file.write(f"{details['user_id']}\t{nic_id}\n")
 #load customer details from file
 def load_users(filename="customers.txt"):
     loaded_data = {}
@@ -44,12 +54,14 @@ def load_users(filename="customers.txt"):
         with open(filename, "r") as file:
             for line in file:
                 parts = line.strip().split('\t')
-                if len(parts) == 4:
-                    name = parts[0]
-                    ph_no = int(parts[1])
-                    address = parts[2]
-                    date = parts[3]
-                    loaded_data[name] = {
+                if len(parts) == 5:
+                    nic = parts[0]
+                    name = parts[1]
+                    ph_no = int(parts[2])
+                    address = parts[3]
+                    date = parts[4]
+                    loaded_data[nic] = {
+                        'name': name,
                         'phone_no': ph_no,
                         'address': address,
                         'Date': date
@@ -77,7 +89,7 @@ def load_admins(filename="users.txt"):
 def find_user(Customer):
     while True:
         try:
-            seek_id=input("Enter user name : ")
+            seek_id=input("Enter user NIC : ")
             break
         except ValueError:
             print("Invalid name. Please enter correct one.")
@@ -85,19 +97,23 @@ def find_user(Customer):
     if seek_id in Customer:
         print("User Found:")
         x=Customer[seek_id]
-        print("phone_num        : Address    : Date           :")
+        print(": Name             : phone_num        : Address    : Date           ")
         print('         '.join(str(value)for value in x.values())) 
         
     else:
         print("User not found.")
 #create a bank account and save into files
-def create_Account(User2=None):
-    if User2 is None:
-        User2 = {}
-
+def create_Account():
+    User2 = {}
     print("===========Account details===========")
     
     Name=input("Enter Customer Name-Ex-(Jana) :")
+    while True:
+        nic = input("Enter NIC Number (Ex-200012345678): ").strip()
+        if len(nic) >= 10:
+            break
+        else:
+            print("Invalid NIC. Must be at least 10 characters.")
     Acc_type=input("Enter Account Type-(Ex-Saving/Current/Fixed) :")
     while True:
         try:
@@ -111,19 +127,19 @@ def create_Account(User2=None):
     print(f"Your Account Number is: {Acc_no}")
     #save user detail to dictionary     
     User2[Acc_no]={
+        'NIC': nic,
         'Name' : Name,
         'Account_type' : Acc_type,
         'Opening_bal' : Intial_bal,
         'Date'      : date.strftime("%Y-%m-%d- %H:%M:%S")
     }
     #print created account
-    print("Account_Number  : Customer_name : Account_Type    : Open_balance       : Date                     :")
+    print("Account_Number  : NIC Number  : Customer    : Account_Type  : Open_balance: Date                     ")
     for user_id,details in User2.items():
-        
-        print(":",user_id," " *(12-len(str(user_id))),":",details['Name']," " *(12-len(str(details['Name']))),":",details['Account_type']," " *(12-len(details['Account_type'])),":",details['Opening_bal']," " *(12-len(str(details['Opening_bal']))),":",details['Date']," " *(18-len(str(details['Date']))),)
+        print(f":{user_id:15}: {details['NIC']:12}: {details['Name']:12}: {details['Account_type']:14}: {details['Opening_bal']:12}: {details['Date']}")
     #save to accounts file
     with open("accounts.txt", "a") as file:
-            file.write(f"{user_id}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
+            file.write(f"{user_id}\t{details['NIC']}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
 
 # Load accounts from file
 def load_accounts(filename="accounts.txt"):
@@ -132,14 +148,16 @@ def load_accounts(filename="accounts.txt"):
         with open(filename, "r") as file:
             for line in file:
                 parts = line.strip().split('\t')
-                if len(parts) == 5:
+                if len(parts) == 6: 
                     acc_no = int(parts[0])
-                    Name = parts[1]
-                    acc_type = parts[2]
-                    opening_bal = float(parts[3])
-                    date = parts[4]
+                    nic = parts[1]
+                    name = parts[2]
+                    acc_type = parts[3]
+                    opening_bal = float(parts[4])
+                    date = parts[5]
                     loaded_data[acc_no] = {
-                        'Name': Name,
+                        'NIC': nic, 
+                        'Name': name,
                         'Account_type': acc_type,
                         'Opening_bal': opening_bal,
                         'Date': date
@@ -179,11 +197,15 @@ def find_acc(User_Acc):
         return dict_val
     else:
         print("User not found.")
+        return None
 # Deposit money to account
 def deposit():
     accounts = load_accounts()
 
-    rece=find_acc(accounts)
+    rece = find_acc(accounts)
+    if rece is None:
+        return
+    nic = rece['NIC']
     a_name=rece['Name']
     a_num=rece['Account_type']
     open_bal=rece['Opening_bal']
@@ -202,11 +224,11 @@ def deposit():
             date=datetime.datetime.now()
             # record transaction
             with open("transactions.txt", "a") as file:
-                file.write(f"{a_name}\t{a_num}\t{amount}\tDeposit\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t\n")
+                file.write(f"{nic}\t{a_name}\t{a_num}\t{amount}\tDeposit\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t\n")
             # Update accounts
             with open("accounts.txt", "w") as file:
                     for acc_id, details in accounts.items():
-                        file.write(f"{acc_id}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
+                        file.write(f"{acc_id}\t{details['NIC']}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
             break
         else:
             print("Negative or zero amount")
@@ -215,6 +237,9 @@ def withdraw():
     accounts = load_accounts()
                     
     rece=find_acc(accounts)
+    if rece is None:
+        return
+    nic = rece['NIC']
     a_name=rece['Name']
     a_num=rece['Account_type']
     open_bal=rece['Opening_bal']
@@ -233,60 +258,14 @@ def withdraw():
             date=datetime.datetime.now()
             # record transaction
             with open("transactions.txt", "a") as file:
-                file.write(f"{a_name}\t{a_num}\t{amount}\tWithdraw\t{open_bal}\t{date.strftime("%Y-%m-%d-%H:%M:%S")}\t\n")
+                file.write(f"{nic}\t{a_name}\t{a_num}\t{amount}\tWithdraw\t{open_bal}\t{date.strftime("%Y-%m-%d-%H:%M:%S")}\t\n")
             # Update accounts
             with open("accounts.txt", "w") as file:
                     for acc_id, details in accounts.items():
-                        file.write(f"{acc_id}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
+                        file.write(f"{acc_id}\t{details['NIC']}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
             break
         else:
             print("Withdrawals greater than the balance")   
-        
-# Check balance
-def get_Bal(User_Acc):
-    while True:
-        try:
-            seek_id=int(input("Enter Account number : "))
-            break
-        except ValueError:
-            print("Invalid number. Please enter number only.")
-    
-    if seek_id in User_Acc:
-        print("User Found:")
-        dict_val=User_Acc[seek_id]
-        print("Customer_name  : Pho_number    : Address        : Date           :")
-        print('         '.join(str(value)for value in dict_val.values())) 
-        return dict_val
-    else:
-        print("User not found.")
-# Show transaction history
-def history(account_name=None):
-    print("Transaction History:\n")
-
-    transactions = []
-
-    try:
-        with open("transactions.txt", "r") as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue  # skip empty lines
-                parts = [item.strip() for item in line.split('\t')]
-                if len(parts) == 6:
-                    if account_name is None or parts[0] == account_name:
-                        transactions.append(parts)
-                else:
-                    print(f"Skipping malformed line: {line}")
-    except FileNotFoundError:
-        print("Transaction file not found.")
-        return
-
-    # Print the table
-    headers = ["Customer_name", "Account_Type", "Transaction Amount","Status", "Close Balance", "Date"]
-    if transactions:
-        print(tabulate(transactions, headers=headers))
-    else:
-        print("No transactions found for this account.")
 # Transfer money between accounts
 def transfer_money(accounts):
     print("======== Money Transfer ========")
@@ -326,13 +305,13 @@ def transfer_money(accounts):
 
     # Log transaction for sender
     with open("transactions.txt", "a") as file:
-        file.write(f"{sender['Name']}\t{sender['Account_type']}\t{amount}\tDeposit\t{sender['Opening_bal']}\t{date}\n")
-        file.write(f"{receiver['Name']}\t{receiver['Account_type']}\t{amount}\twithdraw\t{receiver['Opening_bal']}\t{date}\n")
+        file.write(f"{sender['NIC']}\t{sender['Name']}\t{sender['Account_type']}\t{amount}\tDeposit\t{sender['Opening_bal']}\t{date}\n")
+        file.write(f"{receiver['NIC']}\t{receiver['Name']}\t{receiver['Account_type']}\t{amount}\twithdraw\t{receiver['Opening_bal']}\t{date}\n")
 
     # Update accounts file
     with open("accounts.txt", "w") as file:
         for acc_id, details in accounts.items():
-            file.write(f"{acc_id}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
+            file.write(f"{acc_id}\t{details['NIC']}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
 # Add monthly interest to all accounts
 def add_interest(accounts):
     print("====== Add Interest to Accounts ======")
@@ -349,12 +328,74 @@ def add_interest(accounts):
 
             # recoard interest transaction
             with open("transactions.txt", "a") as file:
-                file.write(f"{acc['Name']}\t{acc['Account_type']}\t{interest:.2f}\tInterest\t{acc['Opening_bal']:.2f}\t{date}\n")
+                file.write(f"{acc['NIC']}\t{acc['Name']}\t{acc['Account_type']}\t{interest:.2f}\tInterest\t{acc['Opening_bal']:.2f}\t{date}\n")
 
 
     with open("accounts.txt", "w") as file:
         for acc_id, details in accounts.items():
-            file.write(f"{acc_id}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']:.2f}\t{details['Date']}\n")
+            file.write(f"{acc_id}\t{details['NIC']}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']:.2f}\t{details['Date']}\n")
+
+# Check balance
+def get_Bal(User_Acc):
+    nic = input("Enter NIC number to search accounts: ").strip()
+    matched_accounts = {acc_id: details for acc_id, details in User_Acc.items() if details['NIC'] == nic}
+
+    if not matched_accounts:
+        print("No accounts found for this NIC.")
+        return None
+
+    print("\nAccounts found:")
+    print("Account No\tAccount Type\tCustomer Name\tBalance")
+    for acc_id, details in matched_accounts.items():
+        print(f"{acc_id}\t\t{details['Account_type']}\t\t{details['Name']}\t\t{details['Opening_bal']}")
+
+    while True:
+        try:
+            seek_id = int(input("\nEnter the Account number to view its balance: "))
+            if seek_id in matched_accounts:
+                selected = matched_accounts[seek_id]
+                print("\nSelected Account Details:")
+                print(":NIC_Number       : Customer_name  : Acc_Type    : Balance        : Date")
+                print('         '.join(str(value) for value in selected.values()))
+                return selected
+            else:
+                print("Account number not found under this NIC.")
+        except ValueError:
+            print("Invalid input. Please enter a valid account number.")
+#get nic to filter accounts
+def get_nic_by_username(username):
+    try:
+        with open("user_nic_map.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split('\t')
+                if len(parts) == 2 and parts[0] == username:
+                    return parts[1]
+    except FileNotFoundError:
+        print(f"{filename} not found.")
+    return None
+
+# Show transaction history
+def history(nic=None):
+    print("Transaction History:\n")
+    transactions = []
+
+    try:
+        with open("transactions.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split('\t')
+                if len(parts) >= 7:
+                    if nic is None or parts[0] == nic:
+                        transactions.append(parts[1:]) 
+    except FileNotFoundError:
+        print("Transaction file not found.")
+        return
+
+    headers = ["Customer_name", "Account_Type", "Transaction Amount", "Status", "Close Balance", "Date"]
+    if transactions:
+        print(tabulate(transactions, headers=headers))
+    else:
+        print("No transactions found for this NIC.")
+
 def exit(): # Exit message
     
     print("Thank for using our service")
@@ -366,16 +407,14 @@ while True:
             file.write("Admin\t123\n") 
     admins=load_admins()
 
-    User1={}
-    User2={}
-
+    
     print("=========Login Menu=========")
     print("1.Admin")
     print("2.Customer")
     print("3.Log out")
     while True:
         try:
-            pick=int(input("Choose an Option :(1-3)"))
+            pick=int(input("Choose an Option (1-3) : "))
             break
         except ValueError:
             print("Invalid number. Please enter correct number.")
@@ -399,10 +438,10 @@ while True:
                 print("4.Search Account")
                 print("5.Deposit Money")
                 print("6.Withdrw Money")
-                print("7.Check balance")
-                print("8.Transaction Histry")
-                print("9.Transfer Money")
-                print("10.Add intrest")
+                print("7.Transfer Money")
+                print("8.Add intrest")
+                print("9.Check balance")
+                print("10.Transaction Histry")
                 print("11.Exit")
                 while True:
                     try:
@@ -434,20 +473,20 @@ while True:
 
                 elif select==7:
                     accounts = load_accounts()
-                    final=get_Bal(accounts)
-
-                elif select==8:
-                    history()
-                    name = input("Enter Customer name to view history: ")
-                    history(name)
-
-                elif select==9:
-                    accounts = load_accounts()
                     transfer_money(accounts)
                 
-                elif select==10:
+                elif select==8:
                     accounts = load_accounts()
                     add_interest(accounts)
+                
+                elif select==9:
+                    accounts = load_accounts()
+                    final=get_Bal(accounts)
+
+                elif select==10:
+                    history()
+                    nic = input("Enter NIC to view history: ").strip()
+                    history(nic)
 
                 elif select==11:
                     exit()
@@ -462,8 +501,8 @@ while True:
                 print("2.Deposit Money")
                 print("3.Withdrw Money")
                 print("4.Check balance")
-                print("5.Transaction Histry")
-                print("6.Transfer Money")
+                print("5.Transfer Money")
+                print("6.Transaction History")
                 print("7.Exit")
                 while True:
                     try:
@@ -487,12 +526,15 @@ while True:
                     final=get_Bal(accounts)
 
                 elif select==5:
-                    name = input("Enter Your name to view history: ")
-                    history(name)
-
-                elif select==6:
                     accounts = load_accounts()
                     transfer_money(accounts)
+                    
+                elif select==6:
+                    nic = get_nic_by_username(username)
+                    if nic:
+                        history(nic)
+                    else:
+                        print("Could not find NIC for this user.")
 
                 elif select==7:
                     exit()
@@ -503,4 +545,3 @@ while True:
     else:
         print("User name and Password are incorrect, Enter correctly")
             
-
