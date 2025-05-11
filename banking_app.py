@@ -1,16 +1,28 @@
-
 import datetime
-from tabulate import tabulate
 import os
 
 def Create_user(): #create new customer 
     User1={}
+    existing_nics = set()
+
+    try:
+        with open("customers.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split("\t")
+                if parts:
+                    existing_nics.add(parts[0])
+    except FileNotFoundError:
+        pass 
+
     print("============User details============")
     name=input("Enter Customer Name-(Ex-John) :")
     while True:
-        nic = input("Enter NIC Number (Ex-200012345678): ").strip()
+        nic = input("Enter NIC Number (Ex-200012345678(10 digits)): ").strip()
         if len(nic) >= 10:
-            break
+            if nic in existing_nics:
+                print("This NIC already exists. Please use a different NIC.")
+            else:
+                break
         else:
             print("Invalid NIC. Must be at least 10 characters.")
     while True: #validate phone number input
@@ -89,10 +101,10 @@ def load_admins(filename="users.txt"):
 def find_user(Customer):
     while True:
         try:
-            seek_id=input("Enter user NIC : ")
+            seek_id=input("Enter user NIC (Ex-200012345678(10 digits)): ")
             break
         except ValueError:
-            print("Invalid name. Please enter correct one.")
+            print("Invalid NIC. Please enter correct one.")
     
     if seek_id in Customer:
         print("User Found:")
@@ -109,12 +121,12 @@ def create_Account():
     
     Name=input("Enter Customer Name-Ex-(Jana) :")
     while True:
-        nic = input("Enter NIC Number (Ex-200012345678): ").strip()
+        nic = input("Enter NIC Number (Ex-200012345678(10 digits)): ").strip()
         if len(nic) >= 10:
             break
         else:
             print("Invalid NIC. Must be at least 10 characters.")
-    Acc_type=input("Enter Account Type-(Ex-Saving/Current/Fixed) :")
+    Acc_type=input("Enter Account Type-(Ex-saving/current/fixed) :")
     while True:
         try:
             Intial_bal=float(input("Enter Intial Balance: "))
@@ -185,7 +197,7 @@ def Auto_Acc_no(filename="accounts.txt"):
 def find_acc(User_Acc):
     while True:
         try:
-            seek_id=int(input("Enter Account number : "))
+            seek_id=int(input("Enter Account number (Ex-1000) : "))
             break
         except ValueError:
             print("Invalid number. Please enter Existing one.")
@@ -271,8 +283,8 @@ def transfer_money(accounts):
     print("======== Money Transfer ========")
     
     try:
-        sender_id = int(input("Enter Sender Account Number: "))
-        receiver_id = int(input("Enter Receiver Account Number: "))
+        sender_id = int(input("Enter Sender Account Number(Ex-1000): "))
+        receiver_id = int(input("Enter Receiver Account Number(Ex-1000): "))
     except ValueError:
         print("Invalid input. Account numbers must be numeric.")
         return
@@ -337,7 +349,7 @@ def add_interest(accounts):
 
 # Check balance
 def get_Bal(User_Acc):
-    nic = input("Enter NIC number to search accounts: ").strip()
+    nic = input("Enter NIC number to search accounts(Ex-200012345678(10 digits)): ").strip()
     matched_accounts = {acc_id: details for acc_id, details in User_Acc.items() if details['NIC'] == nic}
 
     if not matched_accounts:
@@ -351,7 +363,7 @@ def get_Bal(User_Acc):
 
     while True:
         try:
-            seek_id = int(input("\nEnter the Account number to view its balance: "))
+            seek_id = int(input("\nEnter the Account number to view its balance(Ex-200012345678(10 digits)): "))
             if seek_id in matched_accounts:
                 selected = matched_accounts[seek_id]
                 print("\nSelected Account Details:")
@@ -362,6 +374,19 @@ def get_Bal(User_Acc):
                 print("Account number not found under this NIC.")
         except ValueError:
             print("Invalid input. Please enter a valid account number.")
+
+def get_Bal_user(User_Acc,nic):
+    matched_accounts = {acc_id: details for acc_id, details in User_Acc.items() if details['NIC'] == nic}
+
+    if not matched_accounts:
+        print("No accounts found for this NIC.")
+        return None
+
+    print("Account No\tAccount Type\tCustomer Name\tBalance")
+    for acc_id, details in matched_accounts.items():
+        print(f"{acc_id}\t\t{details['Account_type']}\t\t{details['Name']}\t\t{details['Opening_bal']}")
+
+
 #get nic to filter accounts
 def get_nic_by_username(username):
     try:
@@ -391,8 +416,12 @@ def history(nic=None):
         return
 
     headers = ["Customer_name", "Account_Type", "Transaction Amount", "Status", "Close Balance", "Date"]
+
     if transactions:
-        print(tabulate(transactions, headers=headers))
+        print("{:<20} {:<15} {:<20} {:<10} {:<15} {:<10}".format(*headers))
+        print("-" * 90)
+        for trans in transactions:
+            print("{:<20} {:<15} {:<20} {:<10} {:<15} {:<10}".format(*trans))
     else:
         print("No transactions found for this NIC.")
 
@@ -485,7 +514,7 @@ while True:
 
                 elif select==10:
                     history()
-                    nic = input("Enter NIC to view history: ").strip()
+                    nic = input("Enter NIC to view history(Ex-200012345678(10 digits)): ").strip()
                     history(nic)
 
                 elif select==11:
@@ -523,7 +552,8 @@ while True:
                     
                 elif select==4:
                     accounts = load_accounts()
-                    final=get_Bal(accounts)
+                    nic = get_nic_by_username(username)
+                    final=get_Bal_user(accounts,nic)
 
                 elif select==5:
                     accounts = load_accounts()
