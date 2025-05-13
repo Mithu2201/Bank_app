@@ -179,16 +179,14 @@ def load_accounts(filename="accounts.txt"):
     
     return loaded_data
 # Generate a new unique account number
-def Auto_Acc_no(filename="accounts.txt"):
+def Auto_Acc_no():
     max_acc_no = 999  # start before the first valid account number
     try:
-        with open(filename, "r") as file:
+        with open("accounts.txt", "r") as file:
             for line in file:
                 parts = line.strip().split('\t')
-                if parts and parts[0].isdigit():
-                    acc_no = int(parts[0])
-                    if acc_no > max_acc_no:
-                        max_acc_no = acc_no
+                if parts and int(parts[0])>max_acc_no:
+                        max_acc_no = int(parts[0])
     except FileNotFoundError:
         pass  # file doesn't exist yet, so we start at 1000
 
@@ -217,6 +215,9 @@ def deposit():
     rece = find_acc(accounts)
     if rece is None:
         return
+
+    acc_id = next(acc for acc, info in accounts.items() if info == rece)
+
     nic = rece['NIC']
     a_name=rece['Name']
     a_num=rece['Account_type']
@@ -236,7 +237,7 @@ def deposit():
             date=datetime.datetime.now()
             # record transaction
             with open("transactions.txt", "a") as file:
-                file.write(f"{nic}\t{a_name}\t{a_num}\t{amount}\tDeposit\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t\n")
+                file.write(f"{acc_id}\t{nic}\t{a_name}\t{a_num}\t{amount}\tDeposit\t{open_bal}\t{date.strftime("%Y-%m-%d- %H:%M:%S")}\t\n")
             # Update accounts
             with open("accounts.txt", "w") as file:
                     for acc_id, details in accounts.items():
@@ -251,6 +252,8 @@ def withdraw():
     rece=find_acc(accounts)
     if rece is None:
         return
+
+    acc_id = next(acc for acc, info in accounts.items() if info == rece)
     nic = rece['NIC']
     a_name=rece['Name']
     a_num=rece['Account_type']
@@ -270,7 +273,7 @@ def withdraw():
             date=datetime.datetime.now()
             # record transaction
             with open("transactions.txt", "a") as file:
-                file.write(f"{nic}\t{a_name}\t{a_num}\t{amount}\tWithdraw\t{open_bal}\t{date.strftime("%Y-%m-%d-%H:%M:%S")}\t\n")
+                file.write(f"{acc_id}\t{nic}\t{a_name}\t{a_num}\t{amount}\tWithdraw\t{open_bal}\t{date.strftime("%Y-%m-%d-%H:%M:%S")}\t\n")
             # Update accounts
             with open("accounts.txt", "w") as file:
                     for acc_id, details in accounts.items():
@@ -295,6 +298,9 @@ def transfer_money(accounts):
     sender = accounts[sender_id]
     receiver = accounts[receiver_id]
 
+    sender_acc_id = sender_id
+    receiver_acc_id = receiver_id
+
     try:
         amount = float(input("Enter amount to transfer: "))
         if amount <= 0:
@@ -316,8 +322,8 @@ def transfer_money(accounts):
 
     # Log transaction for sender
     with open("transactions.txt", "a") as file:
-        file.write(f"{sender['NIC']}\t{sender['Name']}\t{sender['Account_type']}\t{amount}\twithdraw\t{sender['Opening_bal']}\t{date}\n")
-        file.write(f"{receiver['NIC']}\t{receiver['Name']}\t{receiver['Account_type']}\t{amount}\tdeposit\t{receiver['Opening_bal']}\t{date}\n")
+        file.write(f"{sender_acc_id}\t{sender['NIC']}\t{sender['Name']}\t{sender['Account_type']}\t{amount}\twithdraw\t{sender['Opening_bal']}\t{date}\n")
+        file.write(f"{receiver_acc_id}\t{receiver['NIC']}\t{receiver['Name']}\t{receiver['Account_type']}\t{amount}\tdeposit\t{receiver['Opening_bal']}\t{date}\n")
 
     # Update accounts file
     with open("accounts.txt", "w") as file:
@@ -344,7 +350,7 @@ def add_interest(accounts):
 
             # recoard interest transaction
             with open("transactions.txt", "a") as file:
-                file.write(f"{acc['NIC']}\t{acc['Name']}\t{acc['Account_type']}\t{interest:.2f}\tInterest\t{acc['Opening_bal']:.2f}\t{date}\n")
+                file.write(f"{acc_id}\t{acc['NIC']}\t{acc['Name']}\t{acc['Account_type']}\t{interest:.2f}\tInterest\t{acc['Opening_bal']:.2f}\t{date}\n")
 
 
     with open("accounts.txt", "w") as file:
@@ -404,7 +410,7 @@ def get_nic_by_username(username):
     return None
 
 # Show transaction history
-def history(nic=None):
+def history(acc=None):
     print("Transaction History:\n")
     transactions = []
 
@@ -412,22 +418,42 @@ def history(nic=None):
         with open("transactions.txt", "r") as file:
             for line in file:
                 parts = line.strip().split('\t')
-                if len(parts) >= 7:
-                    if nic is None or parts[0] == nic:
-                        transactions.append(parts[1:]) 
+                if len(parts) >= 8:
+                    if acc is None or parts[0] == acc:
+                        transactions.append(parts) 
     except FileNotFoundError:
         print("Transaction file not found.")
         return
 
-    headers = ["Customer_name", "Account_Type", "Transaction Amount", "Status", "Close Balance", "Date"]
+    headers = ["Account","NIC number","Customer_name", "Account_Type", "Transaction", "Status", "Close Balance", "Date"]
 
     if transactions:
-        print("{:<20} {:<15} {:<20} {:<10} {:<15} {:<10}".format(*headers))
-        print("-" * 90)
+        print("{:<10} {:<20} {:<15} {:<15} {:<10} {:<10} {:<15} {:<30}".format(*headers))
+        print("-" * 125)
         for trans in transactions:
-            print("{:<20} {:<15} {:<20} {:<10} {:<15} {:<10}".format(*trans))
+            print("{:<10} {:<20} {:<15} {:<15} {:<10} {:<10} {:<15} {:<30}".format(*trans))
     else:
-        print("No transactions found for this NIC.")
+        print("No transactions found for this Acc no.")
+
+def deactivation(accounts):
+    
+    try:
+        acc_id = int(input("Enter Account Number to deactivate: "))
+    except ValueError:
+        print("Invalid input. Must be a number.")
+        return
+
+    Delete = accounts.pop(acc_id, None)
+    if not Delete:
+        print("Account not found.")
+        return
+
+    # Rewrite the accounts.txt without the deleted one
+    with open("accounts.txt", "w") as file:
+        for acc_id, details in accounts.items():
+            file.write(f"{acc_id}\t{details['NIC']}\t{details['Name']}\t{details['Account_type']}\t{details['Opening_bal']}\t{details['Date']}\n")
+
+    print(f"Deactivation sucessful.")
 
 def exit(): # Exit message
     
@@ -475,7 +501,8 @@ while True:
                 print("8.Add intrest")
                 print("9.Check balance")
                 print("10.Transaction Histry")
-                print("11.Exit")
+                print("11.Deactivation")
+                print("12.Exit")
                 while True:
                     try:
                         select=int(input("Choose an Option(1-11) :"))
@@ -518,10 +545,14 @@ while True:
 
                 elif select==10:
                     history()
-                    nic = input("Enter NIC to view history(Ex-2000123456): ").strip()
-                    history(nic)
-
+                    acc = input("Enter Account Number to view history(Ex-1000): ").strip()
+                    history(acc)
+                
                 elif select==11:
+                    accounts = load_accounts()
+                    deactivation(accounts)
+
+                elif select==12:
                     exit()
                     break
 
