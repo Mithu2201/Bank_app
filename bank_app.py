@@ -1,5 +1,9 @@
 import datetime
 import os
+import hashlib
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def Create_user(): #create new customer 
     User1={}
@@ -49,6 +53,7 @@ def Create_user(): #create new customer
         else:
             break
     Pass=input("Enter Password-(Ex-User@123) :")
+    hashed_pass = hash_password(Pass)
     date=datetime.datetime.now()
     #save user detail to dictionary   
     User1[nic]={
@@ -70,7 +75,7 @@ def Create_user(): #create new customer
         file.write(f"{nic_id}\t{details['name']}\t{details['phone_no']}\t{details['place']}\t{details['Date']}\t\n")
 
     with open("users.txt", "a") as file:
-        file.write(f"{details['user_id']}\t{details['password']}\t\n")
+        file.write(f"{details['user_id']}\t{hashed_pass}\t\n")
 
     with open("user_nic_map.txt", "a") as file:
         file.write(f"{details['user_id']}\t{nic_id}\n")
@@ -653,14 +658,48 @@ def type_summary(acc):
     except FileNotFoundError:
         print("Transaction file not found.")
         return
+
+def password_change():
+    while True: 
+        try:
+            change_U=input("Enter user name to change password : ")
+            break
+        except ValueError:
+            print("Invalid number. Please enter digits only.")
+
+    admins=load_admins()
     
+    if change_U in admins:
+        print("User Found")
+        x=admins[change_U]
+    else:
+        print("User not found.")
+
+    while True: 
+        try:
+            psw=input("Enter password to change to change password : ")
+            break
+        except ValueError:
+            print("Invalid characters. Please enter digits only.")
+
+    admins[change_U]=psw
+    y=admins[change_U]
+    print("Your password has been updated")
+
+    with open("users.txt", "w") as file:
+        for user,password in admins.items():
+            file.write(f"{user}\t{password}\t\n")
+
+
+
 
 Attempt=3
 i=0
 while i<3:
     if not os.path.exists("users.txt"):
         with open("users.txt", "a") as file:
-            file.write("Admin\t123\n") 
+            admin_hash = hash_password("123")
+            file.write(f"Admin\t{admin_hash}\n")  
     admins=load_admins()
     
     print("=========Login Menu=========")
@@ -680,9 +719,10 @@ while i<3:
 
     username = input("Enter Your User Name : ")
     password = input("Enter Your Password : ")
+    hashed_input_password = hash_password(password)
 
     if pick==1: 
-        if username in admins and admins[username] == password:
+        if username in admins and admins[username] == hashed_input_password:
             print("Welcome",username,"(Admin)")
             while True:
                 print("============Menu===========")    
@@ -705,6 +745,7 @@ while i<3:
                 print("17.Account count")
                 print("18.Show current date")
                 print("19.transcation type summary")
+                print("20.Change password")
 
                 while True:
                     try:
@@ -784,6 +825,9 @@ while i<3:
                 elif select==19:
                     acc = input("Enter Account Number to view history(Ex-1000): ").strip()
                     type_summary(acc)
+                
+                elif select==20:
+                    password_change()
 
         else:
             print("Customer not found.")
@@ -791,7 +835,7 @@ while i<3:
             print("Attempt left " ,Attempt)
 
     elif pick==2:
-        if username in admins and admins[username] == password:
+        if username in admins and admins[username] == hashed_input_password:
             nic = get_nic_by_username(username)
             customers = load_users()
             if nic and nic in customers:
